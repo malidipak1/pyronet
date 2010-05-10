@@ -27,20 +27,11 @@ public class RawEchoClient extends PyroClientAdapter
       PyroClient client = selector.connect(bind);
       client.addListener(handler);
 
-      try
+      while (true)
       {
-         while (true)
-         {
-            // perform network I/O
+         // perform network I/O
 
-            selector.select();
-         }
-      }
-      catch (Exception exc)
-      {
-         exc.printStackTrace();
-         
-         System.out.println("stopped handling network i/o");
+         selector.select();
       }
    }
 
@@ -49,7 +40,7 @@ public class RawEchoClient extends PyroClientAdapter
    {
       System.out.println("connected: " + client);
 
-      String message = "hello there!";
+      final String message = "hello there!";
 
       System.out.println("client: yelling \"" + message + "\" to the server");
 
@@ -72,10 +63,7 @@ public class RawEchoClient extends PyroClientAdapter
          @Override
          public void droppedClient(PyroClient client, IOException cause)
          {
-            System.out.println("dropped");
-
-            if (cause != null)
-               cause.printStackTrace();
+            System.out.println("lost connection");
          }
 
          @Override
