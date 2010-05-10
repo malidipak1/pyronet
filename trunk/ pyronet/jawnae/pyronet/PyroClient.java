@@ -47,7 +47,7 @@ public class PyroClient
 
       this.outbound = new ByteStream();
       this.listeners = new CopyOnWriteArrayList<PyroClientListener>();
-      this.last_io_event = System.currentTimeMillis();
+      this.lastEventTime = System.currentTimeMillis();
    }
 
    //
@@ -136,6 +136,8 @@ public class PyroClient
 
       ((SocketChannel) key.channel()).socket().setSoTimeout(ms);
 
+      // prevent a call to setTimeout from immediately causing a timeout
+      this.lastEventTime = System.currentTimeMillis();
       this.timeout = ms;
    }
 
@@ -416,19 +418,19 @@ public class PyroClient
    }
 
    private long timeout = 0L;
-   private long last_io_event;
+   private long lastEventTime;
 
    boolean didTimeout(long now)
    {
       if (this.timeout == 0)
          return false; // never timeout
-      return (now - this.last_io_event) > this.timeout;
+      return (now - this.lastEventTime) > this.timeout;
    }
 
    private void onReadyToConnect(long now) throws IOException
    {
       this.selector.checkThread();
-      this.last_io_event = now;
+      this.lastEventTime = now;
 
       this.selector.adjustInterestOp(key, SelectionKey.OP_CONNECT, false);
       ((SocketChannel) key.channel()).finishConnect();
@@ -440,7 +442,7 @@ public class PyroClient
    private void onReadyToRead(long now) throws IOException
    {
       this.selector.checkThread();
-      this.last_io_event = now;
+      this.lastEventTime = now;
 
       SocketChannel channel = (SocketChannel) key.channel();
 
@@ -460,7 +462,7 @@ public class PyroClient
    private int onReadyToWrite(long now) throws IOException
    {
       this.selector.checkThread();
-      this.last_io_event = now;
+      this.lastEventTime = now;
 
       int sent = 0;
 
