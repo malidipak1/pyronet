@@ -50,8 +50,8 @@ public class ByteSinkEchoClient extends PyroClientAdapter
       System.out.println("client: yelling \"" + message + "\" to the server");
 
       // send "hello there!\r\n"
-      client.enqueue(ByteBuffer.wrap(message.getBytes()));
-      client.enqueue(ByteBuffer.wrap(delimiter));
+      client.write(ByteBuffer.wrap(message.getBytes()));
+      client.write(ByteBuffer.wrap(delimiter));
 
       ByteSink echoSink = new ByteSinkEndsWith(delimiter, 1024, false)
       {

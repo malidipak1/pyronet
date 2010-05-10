@@ -25,11 +25,11 @@ public abstract class ByteSinkPacket32 implements ByteSink
          System.arraycopy(payload, 0, wrapped, 4, payload.length);
       }
 
-      client.enqueue(client.selector().malloc(wrapped));
+      client.write(client.selector().malloc(wrapped));
 
       if (isExtreme)
       {
-         client.enqueue(client.selector().malloc(payload));
+         client.write(client.selector().malloc(payload));
       }
    }
 

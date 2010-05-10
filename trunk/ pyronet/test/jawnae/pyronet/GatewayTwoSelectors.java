@@ -139,7 +139,7 @@ public class GatewayTwoSelectors extends PyroClientAdapter implements PyroServer
 
       try
       {
-         otherGuy.enqueueCopy(data);
+         otherGuy.writeCopy(data);
       }
       catch (IllegalStateException exc)
       {

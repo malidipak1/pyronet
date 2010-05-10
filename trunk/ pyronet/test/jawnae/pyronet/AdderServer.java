@@ -70,7 +70,7 @@ public class AdderServer
             result.flip();
 
             // send it to the client
-            client.enqueue(result);
+            client.write(result);
          }
       };
       feeder.addByteSink(data12);
@@ -111,7 +111,7 @@ public class AdderServer
             result.flip();
 
             // send it to the client
-            client.enqueue(result);
+            client.write(result);
          }
       };
       feeder.addByteSink(data1);
