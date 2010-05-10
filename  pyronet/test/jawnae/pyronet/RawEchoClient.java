@@ -45,7 +45,7 @@ public class RawEchoClient extends PyroClientAdapter
       System.out.println("client: yelling \"" + message + "\" to the server");
 
       // send "hello there!"
-      client.enqueue(ByteBuffer.wrap(message.getBytes()));
+      client.write(ByteBuffer.wrap(message.getBytes()));
 
       client.addListener(new PyroClientAdapter()
       {

@@ -22,7 +22,7 @@ public abstract class ByteSinkPacket16 implements ByteSink
       wrapped[1] = (byte) (payload.length >> 0);
       System.arraycopy(payload, 0, wrapped, 2, payload.length);
 
-      client.enqueue(client.selector().malloc(wrapped));
+      client.write(client.selector().malloc(wrapped));
    }
 
    //

@@ -176,7 +176,7 @@ public class PyroClient
    private boolean doEagerWrite = false;
 
    /**
-    * If enabled, causes calls to enqueue to make an attempt to write the bytes,
+    * If enabled, causes calls to write() to make an attempt to write the bytes,
     * without waiting for the selector to signal writable state.
     */
 
@@ -187,20 +187,20 @@ public class PyroClient
 
    //
 
-   public void enqueueCopy(ByteBuffer data) throws PyroException
+   public void writeCopy(ByteBuffer data) throws PyroException
    {
-      this.enqueue(this.selector.copy(data));
+      this.write(this.selector.copy(data));
    }
 
    /**
     * Will enqueue the bytes to send them<br>
-    * 1. immediately, if eagerWrite is enabled (default)<br>
-    * 2. when the selector is ready to write, if eagerWrite is disabled<br>
+    * 1. when the selector is ready to write, if eagerWrite is disabled (default)<br>
+    * 2. immediately, if eagerWrite is enabled<br> 
     * The ByteBuffer instance is kept, not copied, and thus should not be modified
     * @throws PyroException when shutdown() has been called.
     */
 
-   public void enqueue(ByteBuffer data) throws PyroException
+   public void write(ByteBuffer data) throws PyroException
    {
       this.selector.checkThread();
 

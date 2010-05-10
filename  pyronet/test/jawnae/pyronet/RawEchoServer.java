@@ -69,7 +69,7 @@ public class RawEchoServer
             // dump to console
             System.out.println("received \"" + text + "\" from " + client);
 
-            client.enqueue(echo);
+            client.write(echo);
          }
 
          @Override

@@ -154,7 +154,7 @@ public class SOCKS4 extends PyroLazyBastardAdapter
       response.clear();
 
       SocksAttachment attachment = dst.attachment();
-      attachment.target.enqueue(response);
+      attachment.target.write(response);
    }
 
    @Override
@@ -169,7 +169,7 @@ public class SOCKS4 extends PyroLazyBastardAdapter
       response.clear();
 
       SocksAttachment attachment = dst.attachment();
-      attachment.target.enqueue(response);
+      attachment.target.write(response);
       attachment.target.shutdown();
    }
 
@@ -219,7 +219,7 @@ public class SOCKS4 extends PyroLazyBastardAdapter
             System.out.println("   traffic: [" + from + " => " + to + "]");
          }
 
-         attachment.target.enqueueCopy(data);
+         attachment.target.writeCopy(data);
       }
    }
 
@@ -311,7 +311,7 @@ public class SOCKS4 extends PyroLazyBastardAdapter
             response.put((byte) 0x00);
             response.put((byte) 0x5b); // rejected
             response.clear();
-            src.enqueue(response);
+            src.write(response);
             src.shutdown();
             return;
          }
@@ -336,7 +336,7 @@ public class SOCKS4 extends PyroLazyBastardAdapter
             response.put((byte) 0x00);
             response.put((byte) 0x5b); // failed
             response.clear();
-            src.enqueue(response);
+            src.write(response);
             src.shutdown();
          }
          catch (IOException exc)
@@ -345,7 +345,7 @@ public class SOCKS4 extends PyroLazyBastardAdapter
             response.put((byte) 0x00);
             response.put((byte) 0x5b); // failed
             response.clear();
-            src.enqueue(response);
+            src.write(response);
             src.shutdown();
          }
       }

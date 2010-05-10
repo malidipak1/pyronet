@@ -57,8 +57,8 @@ public class AdderClient extends PyroClientAdapter
       ByteBuffer payload1 = (ByteBuffer) ByteBuffer.allocate(4).putInt(value1).flip();
       ByteBuffer payload2 = (ByteBuffer) ByteBuffer.allocate(4).putInt(value2).flip();
 
-      client.enqueue(payload1);
-      client.enqueue(payload2);
+      client.write(payload1);
+      client.write(payload2);
 
       // lets create a handler, it will be executed once the server sends the answer
       ByteSink answerSink = new ByteSinkLength(bytesInInteger)

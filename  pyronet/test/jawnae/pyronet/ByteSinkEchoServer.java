@@ -73,8 +73,8 @@ public class ByteSinkEchoServer
             System.out.println("received \"" + text + "\" from " + client);
 
             // echo data back to client            
-            client.enqueue(echo);
-            client.enqueue(ByteBuffer.wrap(newline)); // append newline
+            client.write(echo);
+            client.write(ByteBuffer.wrap(newline)); // append newline
 
             // disconnect after data was sent
             client.shutdown();

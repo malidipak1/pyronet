@@ -132,7 +132,7 @@ public class Gateway extends PyroLazyBastardAdapter
 
       try
       {
-         otherGuy.enqueueCopy(data);
+         otherGuy.writeCopy(data);
       }
       catch (IllegalStateException exc)
       {
