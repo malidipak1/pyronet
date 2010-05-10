@@ -27,11 +27,20 @@ public class RawEchoClient extends PyroClientAdapter
       PyroClient client = selector.connect(bind);
       client.addListener(handler);
 
-      while (true)
+      try
       {
-         // perform network I/O
+         while (true)
+         {
+            // perform network I/O
 
-         selector.select();
+            selector.select();
+         }
+      }
+      catch (Exception exc)
+      {
+         exc.printStackTrace();
+         
+         System.out.println("stopped handling network i/o");
       }
    }
 

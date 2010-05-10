@@ -47,6 +47,7 @@ public class PyroClient
 
       this.outbound = new ByteStream();
       this.listeners = new CopyOnWriteArrayList<PyroClientListener>();
+      this.last_io_event = System.currentTimeMillis();
    }
 
    //
@@ -134,6 +135,8 @@ public class PyroClient
       this.selector.checkThread();
 
       ((SocketChannel) key.channel()).socket().setSoTimeout(ms);
+
+      this.timeout = ms;
    }
 
    public void setLinger(boolean enabled, int seconds) throws IOException
@@ -168,7 +171,7 @@ public class PyroClient
 
    //
 
-   private boolean doEagerWrite = true;
+   private boolean doEagerWrite = false;
 
    /**
     * If enabled, causes calls to enqueue to make an attempt to write the bytes,
@@ -216,7 +219,7 @@ public class PyroClient
       {
          try
          {
-            this.onReadyToWrite();
+            this.onReadyToWrite(System.currentTimeMillis());
          }
          catch (NotYetConnectedException exc)
          {
@@ -248,7 +251,7 @@ public class PyroClient
 
          try
          {
-            written = this.onReadyToWrite();
+            written = this.onReadyToWrite(System.currentTimeMillis());
          }
          catch (IOException exc)
          {
@@ -283,7 +286,7 @@ public class PyroClient
 
          try
          {
-            written = this.onReadyToWrite();
+            written = this.onReadyToWrite(System.currentTimeMillis());
          }
          catch (IOException exc)
          {
@@ -387,7 +390,7 @@ public class PyroClient
 
    //
 
-   void onInterestOp()
+   void onInterestOp(long now)
    {
       if (!key.isValid())
       {
@@ -398,11 +401,11 @@ public class PyroClient
          try
          {
             if (key.isConnectable())
-               this.onReadyToConnect();
-            else if (key.isReadable())
-               this.onReadyToRead();
-            else if (key.isWritable())
-               this.onReadyToWrite();
+               this.onReadyToConnect(now);
+            if (key.isReadable())
+               this.onReadyToRead(now);
+            if (key.isWritable())
+               this.onReadyToWrite(now);
          }
          catch (IOException exc)
          {
@@ -412,9 +415,20 @@ public class PyroClient
       }
    }
 
-   private void onReadyToConnect() throws IOException
+   private long timeout = 0L;
+   private long last_io_event;
+
+   boolean didTimeout(long now)
+   {
+      if (this.timeout == 0)
+         return false; // never timeout
+      return (now - this.last_io_event) > this.timeout;
+   }
+
+   private void onReadyToConnect(long now) throws IOException
    {
       this.selector.checkThread();
+      this.last_io_event = now;
 
       this.selector.adjustInterestOp(key, SelectionKey.OP_CONNECT, false);
       ((SocketChannel) key.channel()).finishConnect();
@@ -423,9 +437,10 @@ public class PyroClient
          listener.connectedClient(this);
    }
 
-   private void onReadyToRead() throws IOException
+   private void onReadyToRead(long now) throws IOException
    {
       this.selector.checkThread();
+      this.last_io_event = now;
 
       SocketChannel channel = (SocketChannel) key.channel();
 
@@ -442,9 +457,10 @@ public class PyroClient
          listener.receivedData(this, buffer);
    }
 
-   private int onReadyToWrite() throws IOException
+   private int onReadyToWrite(long now) throws IOException
    {
       this.selector.checkThread();
+      this.last_io_event = now;
 
       int sent = 0;
 
@@ -574,23 +590,24 @@ public class PyroClient
       this.selector.adjustInterestOp(this.key, SelectionKey.OP_WRITE, interested);
    }
 
-   static final SelectionKey bindAndConfigure(PyroSelector hub, SocketChannel channel, InetSocketAddress bind) throws IOException
+   static final SelectionKey bindAndConfigure(PyroSelector selector, SocketChannel channel, InetSocketAddress bind) throws IOException
    {
-      hub.checkThread();
+      selector.checkThread();
 
       channel.socket().bind(bind);
 
-      return PyroClient.configure(hub, channel, true);
+      return configure(selector, channel, true);
    }
 
-   static final SelectionKey configure(PyroSelector hub, SocketChannel channel, boolean connect) throws IOException
+   static final SelectionKey configure(PyroSelector selector, SocketChannel channel, boolean connect) throws IOException
    {
-      hub.checkThread();
+      selector.checkThread();
 
       channel.configureBlocking(false);
-      //channel.socket().setSoLinger(false, 0);
+      //channel.socket().setSoLinger(false, 0); // this will b0rk your connections
       channel.socket().setSoLinger(true, 4);
       channel.socket().setReuseAddress(true);
+      channel.socket().setKeepAlive(false);
       channel.socket().setTcpNoDelay(true);
       channel.socket().setReceiveBufferSize(PyroSelector.BUFFER_SIZE);
       channel.socket().setSendBufferSize(PyroSelector.BUFFER_SIZE);
@@ -599,6 +616,6 @@ public class PyroClient
       if (connect)
          ops |= SelectionKey.OP_CONNECT;
 
-      return hub.register(channel, ops);
+      return selector.register(channel, ops);
    }
 }

@@ -25,7 +25,7 @@ public interface PyroSelectorListener
 
    public void serverSelected(PyroServer server);
 
-   public void clientSelected(PyroClient client);
+   public void clientSelected(PyroClient client, int readyOps);
 
    //
 

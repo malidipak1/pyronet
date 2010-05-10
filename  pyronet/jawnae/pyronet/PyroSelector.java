@@ -7,6 +7,7 @@ package jawnae.pyronet;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
 import java.nio.channels.CancelledKeyException;
 import java.nio.channels.SelectableChannel;
@@ -159,17 +160,18 @@ public class PyroSelector
       this.select(0);
    }
 
-   public void select(long timeout)
+   public void select(long eventTimeout)
    {
       this.checkThread();
 
       //
 
       this.executePendingTasks();
+      this.performNioSelect(eventTimeout);
 
-      this.performNioSelect(timeout);
-
-      this.handleSelectedKeys();
+      final long now = System.currentTimeMillis();
+      this.handleSelectedKeys(now);
+      this.handleSocketTimeouts(now);
    }
 
    private void executePendingTasks()
@@ -217,7 +219,7 @@ public class PyroSelector
          this.listener.selectedKeys(selected);
    }
 
-   private final void handleSelectedKeys()
+   private final void handleSelectedKeys(long now)
    {
       Iterator<SelectionKey> keys = nioSelector.selectedKeys().iterator();
 
@@ -238,8 +240,31 @@ public class PyroSelector
          {
             PyroClient client = (PyroClient) key.attachment();
             if (this.listener != null)
-               this.listener.clientSelected(client);
-            client.onInterestOp();
+               this.listener.clientSelected(client, key.readyOps());
+            client.onInterestOp(now);
+         }
+      }
+   }
+
+   private final void handleSocketTimeouts(long now)
+   {
+      for (SelectionKey key : nioSelector.keys())
+      {
+         if (key.channel() instanceof SocketChannel)
+         {
+            PyroClient client = (PyroClient) key.attachment();
+
+            if (client.didTimeout(now))
+            {
+               try
+               {
+                  throw new SocketTimeoutException("PyroNet detected NIO timeout");
+               }
+               catch (SocketTimeoutException exc)
+               {
+                  client.onConnectionError(exc);
+               }
+            }
          }
       }
    }
