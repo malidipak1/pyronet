@@ -40,7 +40,7 @@ public class PyroSelectorAdapter implements PyroSelectorListener
       //
    }
 
-   public void clientSelected(PyroClient client)
+   public void clientSelected(PyroClient client, int readyOps)
    {
       //
    }

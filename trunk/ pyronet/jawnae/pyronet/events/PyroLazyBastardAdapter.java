@@ -42,7 +42,7 @@ public class PyroLazyBastardAdapter implements PyroSelectorListener, PyroServerL
       //
    }
 
-   public void clientSelected(PyroClient client)
+   public void clientSelected(PyroClient client, int readyOps)
    {
       //
    }
